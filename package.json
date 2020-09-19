@@ -1,0 +1,16 @@
+{
+  "devDependencies": {},
+  "name": "wv-reactivity",
+  "version": "1.0.0",
+  "main": "app.js",
+  "dependencies": {
+    "@vue/reactivity": "^3.0.0",
+    "@vue/shared": "^3.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "wukangjun",
+  "license": "ISC",
+  "description": ""
+}

@@ -1,0 +1,7 @@
+<!--index.wxml-->     
+<view class="container" style="background: {{colors.color}}">
+  hello world {{colors.color}}
+  <view class="usermotto" bindtap="handlerClick">
+    <text class="user-motto">helloworld: {{state.count}}</text>
+  </view>
+</view>
