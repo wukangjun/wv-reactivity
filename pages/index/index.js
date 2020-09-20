@@ -39,21 +39,7 @@ function initialSetup(instance, config) {
         Object.defineProperty(instance, key, {
           enumerable: true,
           configurable: true,
-          value: function(...args) {
-            if (!value.effect) {
-              value.effect = effect(() => {
-                value.apply(null, args)
-              }, {
-                lazy: true
-              })
-            }
-            value.effect()
-            if (value.effect.deps.length) {
-              // setData
-              console.log(instance.data)
-              instance.setData(instance.data)
-            }
-          }
+          value: effectDecorator(instance, value)
         })
       }
     });
@@ -61,17 +47,49 @@ function initialSetup(instance, config) {
   }
 }
 
+/**
+ * @todo: 如果回调没有赋值操作，不会收集依赖
+ * 
+ * @param {*} instance 
+ * @param {*} fn 
+ */
+function effectDecorator(instance, fn) {
+  return function effectBinding() {
+    if (!fn.effect) {
+      fn.effect = effect(() => {
+        fn.apply(null, arguments)
+      }, {
+        lazy: true
+      })
+    }
+    fn.effect()
+    
+    if (fn.effect.deps.length) {
+      instance.setData(instance.data)
+    }
+  }
+}
+
 function bindLifetime(instance) {
   lifetimes.forEach(l => {
     if (lifetimeMap.has(l)) {
       const origin = instance[l]
-      const lifetimes = lifetimeMap.get(l)
+      const lifes = lifetimeMap.get(l)
+      const fn = (...args) => {
+        lifes.forEach(life => {
+          life.apply(null, args)
+        })
+        //origin && origin.apply(this, args)
+      }
       Object.defineProperty(instance, l, {
         configurable: true,
         enumerable: true,
         value: function(...args) {
-          lifetimes.forEach(life => life.apply(null, args))
-          origin && origin.apply(this, args)
+          lifes.forEach(life => {
+            const a = effectDecorator(instance, life)
+            
+            a.apply(null, args)
+          })
         }
       })
     }
@@ -116,8 +134,8 @@ function changeBackground() {
   });
 
   onPullDownRefresh(() => {
-    console.log('refrehs')
-    //state.color = 'yellow'
+    console.log(state.color)
+    state.color = 'yellow'
   });
 
   return {
@@ -130,12 +148,6 @@ createComponent({
   setup() {
     const { state, handlerClick } = plusHandler()
     const { state: colors } = changeBackground()
-    onShow(() => {
-      console.log('onShow1')
-    })
-    onShow(() => {
-      console.log('onShow2')
-    })
 
     console.log(colors)
 
@@ -146,50 +158,3 @@ createComponent({
     }
   }
 })
-
-// createApp({
-//   setup() {
-//     // 定义数据
-//     const count = ref(0) // { __isRef: true }
-//     const state = reactive({   // Proxy  { __isRetivite: true }
-//       count: 0,
-//       loading: true
-//     })
-//     const double = computed(() => count * 2) RefImplimenent
-
-//     const clickHandler = (event) => {
-//       console.log('hello', event)
-//       state.count++
-//     }
-
-//     const color = ref('#fffff')
-//     onShow(() => {
-//       color.value = 'red'
-//     })
-
-//     onShow(() => {
-//       console.log('hello world1234')
-//     })
-
-//     onPullDownRefresh(() => {
-//       console.log('pulldown')
-//     })
-
-//     return {
-//       state: state,
-//       clickHandler: clickHandler
-//     }
-//   }
-// })
-
-
-// var updateDepth = 0
-// var diffQUeue = {}
-// function setState(o) {
-//   updateDepth++
-//   diffQUeue = { ...diffQUeue, ...o }
-//   updateDepth--
-//   if (updateDepth === 0) {
-//     console.log(diffQUeue)
-//   }
-// }
